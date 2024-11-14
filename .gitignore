@@ -1,0 +1,57 @@
+# General system files
+.DS_Store
+Thumbs.db
+
+# Git ignore rules for the entire repository
+
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore compiled output files for PlatformIO/ESP32
+esp32/.pio/
+esp32/.vscode/
+esp32/src/modules/*.o
+
+# Ignore virtual environments, if any
+env/
+venv/
+
+# Ignore package managers
+node_modules/
+*.log
+
+# Ignore editor-specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# PlatformIO specific
+*.pio
+.pioenvs/
+.clang_complete
+.vscode/
+
+# Ignore PlatformIO build artifacts
+esp32/.pio/build/
+esp32/.pio/libdeps/
+esp32/.pio/build/*.elf
+esp32/.pio/build/*.map
+esp32/.pio/build/*.bin
+esp32/.pio/build/project.checksum
+esp32/.pio/libdeps/esp32dev/integrity.dat
+
+# Ignore files specific to each sub-project
+manual_control/__pycache__/
+manual_control/src/__pycache__/
+manual_control/requirements.txt
+
+# Ignore generated .gitignore files
+!.gitignore
+
+# Optional: If you generate logs or output files in these directories, ignore them here
+logs/
+output/
