@@ -57,10 +57,10 @@ class Camera:
         # Threshold mask to convert to b/w
         _, fg_mask = cv2.threshold(fg_mask, 1, 255, cv2.THRESH_BINARY)
         # Resize mask to grid dimensions
-        fg_mask_resize = cv2.resize(fg_mask, (32, 64), interpolation=cv2.INTER_NEAREST)
+        fg_mask_resize = cv2.resize(fg_mask, (config.GRID_WIDTH, config.GRID_HEIGHT), interpolation=cv2.INTER_NEAREST)
 
         # Resize frame to grid dimensions
-        frame_resize = cv2.resize(frame, (32, 64), interpolation=cv2.INTER_AREA)
+        frame_resize = cv2.resize(frame, (config.GRID_WIDTH, config.GRID_HEIGHT), interpolation=cv2.INTER_AREA)
         # Convert to b/w
         frame_resize = cv2.cvtColor(frame_resize, cv2.COLOR_BGR2GRAY) # Convert to grayscale first
         frame_resize = cv2.adaptiveThreshold(frame_resize, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
@@ -73,9 +73,8 @@ class Camera:
 
         # Scale grid for display
         # Add led gaps
-        led_gap = 3
-        grid_display = np.zeros((64 + (64 - 1) * led_gap, 32 + (32 - 1) * led_gap, 3), np.uint8)
-        grid_display[::(led_gap + 1), ::(led_gap + 1)][grid > 0] = (0, 0, 255)
+        grid_display = np.zeros((config.GRID_HEIGHT + (config.GRID_HEIGHT - 1) * config.GRID_LED_GAP, config.GRID_WIDTH + (config.GRID_WIDTH - 1) * config.GRID_LED_GAP, 3), np.uint8)
+        grid_display[::(config.GRID_LED_GAP + 1), ::(config.GRID_LED_GAP + 1)][grid > 0] = (0, 0, 255)
         # Resize for display and save to global var
         config.SCALED_GRID_IMAGE = cv2.resize(grid_display, (config.HALF_SCREEN_SIZE, config.SCREEN_SIZE), interpolation=cv2.INTER_NEAREST)
 
