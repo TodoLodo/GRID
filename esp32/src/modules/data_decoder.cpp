@@ -1,7 +1,5 @@
 // data_decoder.cpp
 #include "data_decoder.h"
-#include <WiFi.h>
-#include "config.h"
 
 uint32_t DataDecoder::data_array[ARRAY_SIZE] = {0};
 
@@ -33,7 +31,7 @@ void DataDecoder::update()
     }
 
     DataDecoder::data_array[row] &= (2 ^ 6 - 1) << col;
-    DataDecoder::data_array[row] |= (uint32_t)(recByte & (2 ^ 6 - 1)) << col;
+    DataDecoder::data_array[row] |= (uint32_t)(rec_byte & (2 ^ 6 - 1)) << col;
 
     col += 6;
 }

@@ -3,6 +3,10 @@
 #define DATA_DECODER_H
 
 #include <Arduino.h>
+#include <cstdint>
+
+#include "config.h"
+#include "data_decoder.h"
 
 class DataDecoder {
 public:

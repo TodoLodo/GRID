@@ -1,7 +1,5 @@
 // gpio_controller.cpp
 #include "gpio_controller.h"
-#include "data_decoder.h"
-#include "config.h"
 
 void GpioController::init()
 {
@@ -14,10 +12,10 @@ void GpioController::init()
 
 void GpioController::update()
 {
-    uingt64_t anode_pattern;
-    uint32_t cathode_patter;
+    uint64_t anode_pattern;
+    uint32_t cathode_pattern;
     // Apply bit shifting or any required operation to GPIO pins based on data_array
-    for (i = 0; i < 64; i++)
+    for (uint8_t i = 0; i < 64; i++)
     {
         anode_pattern = 1llu << i;
         cathode_pattern = ~(DataDecoder::data_array[i]);
@@ -28,7 +26,7 @@ void GpioController::update()
         // Shift out the 64-bit first byte pattern (8 bytes, or 64 bits)
         for (uint8_t i = 0; i < 8; i++)
         {
-            shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, (firstbytepattern >> (i * 8)));
+            shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, (anode_pattern >> (i * 8)));
         }
         digitalWrite(LATCH_PIN_ANODE, HIGH);
 
@@ -36,7 +34,7 @@ void GpioController::update()
         digitalWrite(LATCH_PIN_CATHODE, LOW);
         for (uint8_t i = 0; i < 4; i++)
         {
-            shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, (firstbytepattern >> (i * 8)));
+            shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, (cathode_pattern >> (i * 8)));
         }
         digitalWrite(LATCH_PIN_CATHODE, HIGH);
 
