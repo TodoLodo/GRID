@@ -5,18 +5,35 @@
 
 uint32_t DataDecoder::data_array[ARRAY_SIZE] = {0};
 
-void DataDecoder::init() {
+void DataDecoder::init()
+{
     Serial.begin(115200);
 }
 
-void DataDecoder::update() {
-    if (Serial.available()) {
-        // Priority 1: USB serial data processing
-        for (int i = 0; i < ARRAY_SIZE; i++) {
-            DataDecoder::data_array[i] = Serial.parseInt();
-        }
-    } else {
-        // TODO: Handle socket communication and data reception
-        // Use sockets or WiFi to check for data and update data_array as needed
+void DataDecoder::update()
+{
+    static uint8_t col = 0, row = 0;
+
+    uint8_t rec_byte = Serial.read();
+
+    switch (rec_byte >> 6)
+    {
+    case 3:
+        row = 0;
+        col = 0;
+        break;
+
+    case 1:
+        row++;
+        col = 0;
+        break;
+
+    default:
+        break;
     }
+
+    DataDecoder::data_array[row] &= (2 ^ 6 - 1) << col;
+    DataDecoder::data_array[row] |= (uint32_t)(recByte & (2 ^ 6 - 1)) << col;
+
+    col += 6;
 }

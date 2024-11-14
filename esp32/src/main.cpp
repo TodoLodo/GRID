@@ -4,24 +4,27 @@
 #include "modules/gpio_controller.h"
 #include "modules/web_server.h"
 
-void setup() {
-    Serial.begin(115200);
-
+void setup()
+{
     // Initialize Wi-Fi
-    WifiManager::init();
+    /* WifiManager::init(); */
 
     // Initialize modules
     DataDecoder::init();
     GpioController::init();
-    WebServer::init();
+    /* WebServer::init(); */
 }
 
-void loop() {
+void loop()
+{
     // Update modules
-    WifiManager::update();
-    DataDecoder::update();
+    /* WifiManager::update(); */
+    if (Serial.available())
+    {
+        DataDecoder::update();
+    }
     GpioController::update();
-    WebServer::update();
+    /* WebServer::update(); */
 
     delay(10); // Small delay to prevent watchdog resets
 }
