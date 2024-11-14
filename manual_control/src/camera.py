@@ -4,31 +4,39 @@ import cv2
 import numpy as np
 import config
 
-
 class Camera:
     def __init__(self):
         # Initialize the camera
-        self.camera = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(0)
+
+        # Crop a 2:1 aspect ration from the center of frame
+        # Calculate height and width for cropping
+        frame_width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)) # Source frame width
+        frame_height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) # Source frame height
+
+        if frame_width > (frame_height // 2):
+            self.crop_w = frame_height // 2 # Cropped width
+            self.crop_h = self.crop_w * 2 # Cropped height
+        else:
+            self.crop_h = frame_width * 2 # Cropped height
+            self.crop_w = self.crop_h // 2 # Cropped width
+        
+        # Calculate offsets for cropping
+        self.crop_x = (frame_width - self.crop_w) // 2 # Cropping x offset
+        self.crop_y = (frame_height - self.crop_h) // 2 # Cropping y offset
 
     def update(self):
         # Capture frame from the camera
-        ret, frame = self.camera.read()
+        ret, frame = self.cap.read()
         if not ret:
-            print("Failed to capture frame from camera.")
+            print("No frame")
             return None
 
-        # Get dimensions and calculate a 2:1 crop from the center
-        height, width = frame.shape[:2]
-        target_width = height // 2
-        crop_x = (width - target_width) // 2  # Center crop horizontally
-        crop_y = 0                            # Full vertical crop for 2:1 aspect
-
         # Crop the frame to a 2:1 aspect ratio
-        cropped_frame = frame[crop_y:crop_y+height, crop_x:crop_x+target_width]
+        cropped_frame = frame[self.crop_y:self.crop_y+self.crop_h, self.crop_x:self.crop_x+self.crop_w]
 
         # Resize the cropped frame to fit half the screen width
-        resized_frame = cv2.resize(
-            cropped_frame, (config.HALF_SCREEN_SIZE, config.SCREEN_SIZE))
+        resized_frame = cv2.resize(cropped_frame, (config.HALF_SCREEN_SIZE, config.SCREEN_SIZE))
 
         # Convert to RGB format for Pygame
         resized_frame_rgb = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
