@@ -10,8 +10,11 @@
 #define AP_PASSWORD "12345678"
 
 // GPIO pin definitions
-#define GPIO_PIN_1 18
-#define GPIO_PIN_2 19
+#define DATA_PIN 13
+#define CLOCK_PIN 4
+#define LATCH_PIN_ANODE 12
+#define LATCH_PIN_CATHODE 14
+#define OE_PIN 2
 
 // Array size
 #define ARRAY_SIZE 64
