@@ -5,14 +5,11 @@ uint32_t DataDecoder::data_array[ARRAY_SIZE] = {0};
 
 void DataDecoder::init()
 {
-    Serial.begin(115200);
 }
 
-void DataDecoder::update()
+void DataDecoder::update(uint8_t rec_byte)
 {
     static uint8_t col = 0, row = 0;
-
-    uint8_t rec_byte = Serial.read();
 
     switch (rec_byte >> 6)
     {

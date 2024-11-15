@@ -6,6 +6,8 @@
 
 void setup()
 {
+
+    Serial.begin(115200);
     // Initialize Wi-Fi
     /* WifiManager::init(); */
 
@@ -21,7 +23,7 @@ void loop()
     /* WifiManager::update(); */
     if (Serial.available())
     {
-        DataDecoder::update();
+        DataDecoder::update(Serial.read());
     }
     GpioController::update();
     /* WebServer::update(); */
