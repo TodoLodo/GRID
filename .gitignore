@@ -54,3 +54,4 @@ manual_control/requirements.txt
 
 # Optional: If you generate logs or output files in these directories, ignore them here
 logs/
+output/
