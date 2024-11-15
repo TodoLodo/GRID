@@ -4,39 +4,40 @@
 void GpioController::init()
 {
     pinMode(DATA_PIN, OUTPUT);
-    pinMode(CLOCK_PIN, OUTPUT);
-    pinMode(LATCH_PIN_ANODE, OUTPUT);
-    pinMode(LATCH_PIN_CATHODE, OUTPUT);
+    pinMode(CLOCK_PIN_ANODE, OUTPUT);
+    pinMode(CLOCK_PIN_CATHODE, OUTPUT);
+    pinMode(LATCH_PIN, OUTPUT);
     pinMode(OE_PIN, OUTPUT);
+}
+
+void __SOB(uint8_t dataPin, uint8_t clockPin, uint8_t val)
+{
+    digitalWrite(dataPin, val);
+    digitalWrite(clockPin, HIGH);
+    digitalWrite(clockPin, LOW);
 }
 
 void GpioController::update()
 {
-    uint64_t anode_pattern;
     uint32_t cathode_pattern;
+
     // Apply bit shifting or any required operation to GPIO pins based on data_array
+    __SOB(DATA_PIN, CLOCK_PIN_ANODE, 1); // initial bit
     for (uint8_t i = 0; i < 64; i++)
     {
-        anode_pattern = 1llu << i;
         cathode_pattern = ~(DataDecoder::data_array[i]);
 
         digitalWrite(OE_PIN, HIGH);
 
-        digitalWrite(LATCH_PIN_ANODE, LOW); // Enable the main shift register to set the 64-bit first byte pattern
-        // Shift out the 64-bit first byte pattern (8 bytes, or 64 bits)
-        for (uint8_t i = 0; i < 8; i++)
-        {
-            shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, (anode_pattern >> (i * 8)));
-        }
-        digitalWrite(LATCH_PIN_ANODE, HIGH);
-
-        // Enable the secondary shift register to set the full 32-bit second byte pattern
-        digitalWrite(LATCH_PIN_CATHODE, LOW);
         for (uint8_t i = 0; i < 4; i++)
         {
-            shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, (cathode_pattern >> (i * 8)));
+            shiftOut(DATA_PIN, CLOCK_PIN_CATHODE, LSBFIRST, (cathode_pattern >> (i * 8)));
         }
-        digitalWrite(LATCH_PIN_CATHODE, HIGH);
+
+        digitalWrite(LATCH_PIN, HIGH);
+        digitalWrite(LATCH_PIN, LOW);
+
+        __SOB(DATA_PIN, CLOCK_PIN_ANODE, 0); // shifting down the rows
 
         digitalWrite(OE_PIN, LOW);
     }
