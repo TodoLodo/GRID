@@ -2,8 +2,12 @@
 #define CONFIG_H
 
 // Wi-Fi credentials for station mode
+#ifndef WIFI_SSID
 #define WIFI_SSID "YourSSID"
+#endif
+#ifndef WIFI_PASSWORD
 #define WIFI_PASSWORD "YourPassword"
+#endif
 
 // IP settings
 #define AP_SSID "ESP32_AP"

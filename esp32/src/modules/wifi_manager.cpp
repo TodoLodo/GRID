@@ -1,7 +1,5 @@
 // wifi_manager.cpp
 #include "wifi_manager.h"
-#include <WiFi.h>
-#include "config.h"
 
 void WifiManager::init() {
     // Setup AP
