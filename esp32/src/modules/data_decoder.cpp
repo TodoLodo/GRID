@@ -27,7 +27,7 @@ void DataDecoder::update(uint8_t rec_byte)
         break;
     }
 
-    DataDecoder::data_array[row] &= (2 ^ 6 - 1) << col;
+    DataDecoder::data_array[row] &= ~((uint32_t)(2 ^ 6 - 1) << col);
     DataDecoder::data_array[row] |= (uint32_t)(rec_byte & (2 ^ 6 - 1)) << col;
 
     col += 6;

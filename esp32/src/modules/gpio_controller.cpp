@@ -23,6 +23,7 @@ void GpioController::update()
 
     // Apply bit shifting or any required operation to GPIO pins based on data_array
     __SOB(DATA_PIN, CLOCK_PIN_ANODE, 1); // initial bit
+    /* digitalWrite(LATCH_PIN, LOW); */
     for (uint8_t i = 0; i < 64; i++)
     {
         cathode_pattern = ~(DataDecoder::data_array[i]);
