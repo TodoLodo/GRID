@@ -3,11 +3,15 @@
 #define DATA_DECODER_H
 
 #include <Arduino.h>
+#include <cstdint>
+
+#include "config.h"
+#include "data_decoder.h"
 
 class DataDecoder {
 public:
     static void init();
-    static void update();
+    static void update(uint8_t rec_byte);
     static uint32_t data_array[ARRAY_SIZE];
 };
 
