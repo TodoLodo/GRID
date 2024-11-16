@@ -3,6 +3,8 @@
 import cv2
 import numpy as np
 import config
+import threading
+
 
 class Camera:
     def __init__(self):
@@ -27,17 +29,8 @@ class Camera:
         # Calculate offsets for cropping
         self.crop_x = (frame_width - self.crop_w) // 2 # Cropping x offset
         self.crop_y = (frame_height - self.crop_h) // 2 # Cropping y offset
-
-    def update(self):
-        # Capture frame from the camera
-        ret, frame = self.cap.read()
-        if not ret:
-            print("No frame")
-            return None
-
-        # Crop the frame to a 2:1 aspect ratio
-        frame = frame[self.crop_y:self.crop_y+self.crop_h, self.crop_x:self.crop_x+self.crop_w]
-
+        
+    def __current_image_update(self, frame):
         # Store cropped image for display purposes
         # Resize the cropped frame to fit half the screen width
         resized_frame = cv2.resize(frame, (config.HALF_SCREEN_SIZE, config.SCREEN_SIZE))
@@ -45,7 +38,8 @@ class Camera:
         resized_frame_rgb = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
         # Update the global current image
         config.CURRENT_IMAGE = resized_frame_rgb
-
+    
+    def __grid_image_update(self, frame):
         # Generate foreground mask
         fg_mask = self.backsub.apply(frame)
         # Apply morphology to denoise and fill holes in mask
@@ -71,13 +65,30 @@ class Camera:
 
         # Save grid to global variable
         config.GRID_IMAGE = grid
+    
+    def __scaled_grid_image_update(self):
+        if config.GRID_IMAGE is not None:
+            grid = config.GRID_IMAGE
+            # Scale grid for display
+            # Add led gaps
+            grid_display = np.zeros((config.GRID_HEIGHT + (config.GRID_HEIGHT - 1) * config.GRID_LED_GAP, config.GRID_WIDTH + (config.GRID_WIDTH - 1) * config.GRID_LED_GAP, 3), np.uint8)
+            grid_display[::(config.GRID_LED_GAP + 1), ::(config.GRID_LED_GAP + 1)][grid > 0] = (0, 0, 255)
+            # Resize for display and save to global var
+            config.SCALED_GRID_IMAGE = cv2.resize(grid_display, (config.HALF_SCREEN_SIZE, config.SCREEN_SIZE), interpolation=cv2.INTER_NEAREST)
+        
+    def update(self):
+        # Capture frame from the camera
+        ret, frame = self.cap.read()
+        if not ret:
+            print("No frame")
+            return None
 
-        # Scale grid for display
-        # Add led gaps
-        grid_display = np.zeros((config.GRID_HEIGHT + (config.GRID_HEIGHT - 1) * config.GRID_LED_GAP, config.GRID_WIDTH + (config.GRID_WIDTH - 1) * config.GRID_LED_GAP, 3), np.uint8)
-        grid_display[::(config.GRID_LED_GAP + 1), ::(config.GRID_LED_GAP + 1)][grid > 0] = (0, 0, 255)
-        # Resize for display and save to global var
-        config.SCALED_GRID_IMAGE = cv2.resize(grid_display, (config.HALF_SCREEN_SIZE, config.SCREEN_SIZE), interpolation=cv2.INTER_NEAREST)
+        # Crop the frame to a 2:1 aspect ratio
+        frame = frame[self.crop_y:self.crop_y+self.crop_h, self.crop_x:self.crop_x+self.crop_w]
 
+        threading.Thread(target=self.__current_image_update, args=[frame], daemon=True).start()
+        threading.Thread(target=self.__grid_image_update, args=[frame], daemon=True).start()
+        threading.Thread(target=self.__scaled_grid_image_update, daemon=True).start()
+        
     def release(self):
         self.cap.release()
