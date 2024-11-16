@@ -17,21 +17,24 @@ class Display:
         # Fill the screen with the background color
         self.screen.fill(config.BACKGROUND_COLOR)
 
-        # Check if the current image is available
+        # Check if current image is available
         if config.CURRENT_IMAGE is not None:
-            # Convert the frame to a Pygame surface
-            frame_surface = pygame.surfarray.make_surface(
-                np.rot90(config.CURRENT_IMAGE))
-
-            # Render the frame on the left half of the screen (2:1 aspect ratio)
-            self.screen.blit(frame_surface, (0, 0))
+            # Check if scaled grid image is available
+            if config.SCALED_GRID_IMAGE is not None:
+                # Combine both images
+                combined_image = np.concatenate(
+                    (config.SCALED_GRID_IMAGE, config.CURRENT_IMAGE),
+                    axis=1)
+                
+                # Draw onto screen
+                combined_image = pygame.surfarray.make_surface(np.rot90(combined_image))
+                self.screen.blit(combined_image, (0, 0))
             
-            frame_surface = pygame.surfarray.make_surface(
-                np.rot90(config.SCALED_GRID_IMAGE))
-            
-            self.screen.blit(frame_surface, (config.HALF_SCREEN_SIZE, 0))
+            else:
+                # Scaled grid not availabe, render current image only
+                frame_surface = pygame.surfarray.make_surface(np.rot90(config.CURRENT_IMAGE))
+                self.screen.blit(frame_surface, (0, 0))
 
-        # Only left half will display the video; right half remains background color
         pygame.display.flip()
 
     def close(self):
