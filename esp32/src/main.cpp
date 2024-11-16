@@ -9,7 +9,7 @@ void setup()
 
     Serial.begin(115200);
     // Initialize Wi-Fi
-    WifiManager::init();
+    /* WifiManager::init(); */
 
     // Initialize modules
     DataDecoder::init();
@@ -20,7 +20,7 @@ void setup()
 void loop()
 {
     // Update modules
-    WifiManager::update();
+    /* WifiManager::update(); */
     if (Serial.available())
     {
         DataDecoder::update(Serial.read());

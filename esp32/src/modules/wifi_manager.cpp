@@ -24,6 +24,10 @@ void WifiManager::update()
     if (WiFi.status() != WL_CONNECTED)
     {
         WiFi.reconnect();
+        Serial.print("SSID: ");
+        Serial.print(WIFI_SSID);
+        Serial.print(", PASS: ");
+        Serial.print(WIFI_PASSWORD);
         Serial.print("Station IP address: ");
         Serial.println(WiFi.localIP());
     }
