@@ -30,8 +30,6 @@ def main():
         comm.send_image()
         
         """ print(config.grid_image) """
-        
-        sleep(0.1)
 
     # Clean up resources
     camera.release()

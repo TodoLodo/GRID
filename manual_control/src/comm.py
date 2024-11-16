@@ -32,7 +32,7 @@ class SerialComm(serial.Serial):
             img_row = img[row]
             for B_col in range(6):
                 byte_i = B_col + row * 6
-                bit_pattern = (img_row & ((2**6 - 1) << (B_col * 6))) >> (B_col * 6)
+                bit_pattern = (img_row & (np.uint32(2**6 - 1) << (B_col * 6))) >> (B_col * 6)
 
                 self.img_arr[byte_i] &= 3<<6
                 self.img_arr[byte_i] |= bit_pattern
@@ -65,7 +65,7 @@ class SerialComm(serial.Serial):
 
             # Convert each row of 32 pixels into a uint32
             for row_index in range(64):
-                row_bits = 0  # Start with an empty 32-bit integer
+                row_bits = np.uint32(0)  # Start with an empty 32-bit integer
                 for col_index in range(32):
                     # Set the bit if the pixel is white (255)
                     if config.GRID_IMAGE[row_index, col_index] == 255:
@@ -78,7 +78,8 @@ class SerialComm(serial.Serial):
             self.__printImg()
 
             # Send the bytearray over serial
-            #self.write(self.img_arr)
+            if self.is_open:
+                self.write(self.img_arr)
             print("Image data sent over serial.")
         else:
             print("No image data to send.")
