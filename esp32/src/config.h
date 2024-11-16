@@ -14,9 +14,9 @@
 #define AP_PASSWORD "12345678"
 
 // GPIO pin definitions
-#define DATA_PIN 4
+#define DATA_PIN 13
 #define CLOCK_PIN_ANODE 12
-#define CLOCK_PIN_CATHODE 13
+#define CLOCK_PIN_CATHODE 4
 #define LATCH_PIN 14
 #define OE_PIN 2
 

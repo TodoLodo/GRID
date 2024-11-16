@@ -18,6 +18,6 @@ GRID_IMAGE = None
 SCALED_GRID_IMAGE = None
 
 # serial comms
-COM_PORT = None
+COM_PORT = "COM3"
 IP = None
 PORT = 5588

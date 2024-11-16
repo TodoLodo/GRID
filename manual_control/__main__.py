@@ -30,6 +30,11 @@ def main():
         display.draw_frame()
         
         comm.send_image()
+
+        if comm.in_waiting > 0:  # Check if data is available
+            line = comm.readline().decode('utf-8', errors='replace').strip()  # Read and strip extra spaces/newlines
+            if line:
+                """ print(line) """
         
         print(f"fps: {1/(time.time() - s)}")
 
