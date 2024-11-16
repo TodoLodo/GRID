@@ -6,6 +6,7 @@ from src.camera import Camera
 from src.display import Display
 from src.comm import SerialComm
 from time import sleep
+import time
 
 def main():
     # Initialize camera and display
@@ -16,6 +17,7 @@ def main():
     # Main application loop
     running = True
     while running:
+        s = time.time()
         # Handle Pygame events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -29,7 +31,7 @@ def main():
         
         comm.send_image()
         
-        """ print(config.grid_image) """
+        print(f"fps: {1/(time.time() - s)}")
 
     # Clean up resources
     camera.release()

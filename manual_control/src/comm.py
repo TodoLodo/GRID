@@ -75,11 +75,11 @@ class SerialComm(serial.Serial):
                 
             self.__setPattern(uint32_img)
             
-            self.__printImg()
+            #self.__printImg()
 
             # Send the bytearray over serial
             if self.is_open:
                 self.write(self.img_arr)
-            print("Image data sent over serial.")
+            #print("Image data sent over serial.")
         else:
             print("No image data to send.")

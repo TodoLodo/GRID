@@ -66,7 +66,8 @@ class Camera:
         frame_resize = cv2.adaptiveThreshold(frame_resize, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
 
         # Apply mask over resized image
-        grid = cv2.bitwise_and(frame_resize, fg_mask_resize)
+        #grid = cv2.bitwise_and(frame_resize, fg_mask_resize)
+        grid = frame_resize
 
         # Save grid to global variable
         config.GRID_IMAGE = grid
