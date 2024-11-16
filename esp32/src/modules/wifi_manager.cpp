@@ -10,6 +10,12 @@ void WifiManager::init()
 
     // Setup Station
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    delay(100);
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        Serial.print("Station IP address: ");
+        Serial.println(WiFi.localIP());
+    }
 }
 
 void WifiManager::update()
