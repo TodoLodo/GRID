@@ -25,8 +25,18 @@ void loop()
     {
         DataDecoder::update(Serial.read());
     }
-    GpioController::update();
-    /* WebServer::update(); */
 
-    delay(10); // Small delay to prevent watchdog resets
+    // Debugging: Print all rows in the shared data_array
+    /* Serial.println("Data array from main:");
+    for (size_t i = 0; i < ARRAY_SIZE; i++)
+    {
+        Serial.print("Row ");
+        Serial.print(i);
+        Serial.print(": ");
+        Serial.println(DataDecoder::data_array[i], BIN);
+    } */
+
+    GpioController::update();
+
+    /* WebServer::update(); */
 }

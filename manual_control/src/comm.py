@@ -1,5 +1,3 @@
-# src/serial_comm.py
-
 import serial
 import config
 import numpy as np
@@ -9,34 +7,48 @@ import cv2
 class SerialComm(serial.Serial):
     def __init__(self, port=config.COM_PORT, baudrate=115200, timeout=1):
         # Initialize the serial port
-        
         self.img_arr = bytearray(384)
-        
+
+        # Prepare the image array with patterns
         for i in range(64):
             for j in range(6):
                 byte_i = j + i * 6
 
                 if j == 0 and i == 0:
-                    self.img_arr[byte_i] |= (3<<6)
+                    self.img_arr[byte_i] |= (3 << 6)
                 elif j == 0:
-                    self.img_arr[byte_i] |= (1<<6)
+                    self.img_arr[byte_i] |= (1 << 6)
                 elif j == 5 and i == 63:
-                    self.img_arr[byte_i] |= (1<<7)
-        
-        super().__init__(port=port, baudrate=baudrate, timeout=timeout)
-        
+                    self.img_arr[byte_i] |= (1 << 7)
+
+        try:
+            super().__init__(port=port, baudrate=baudrate, timeout=timeout)
+        except serial.SerialException:
+            print(f"Failed to connect to port {port}. Setting port to None.")
+            self.port = None
+
+    def reconnect(self):
+        """Attempt to reconnect to the configured port."""
+        if self.port is None and config.COM_PORT:
+            try:
+                self.port = config.COM_PORT
+                self.open()
+                print(f"Reconnected to port {config.COM_PORT}.")
+            except serial.SerialException as e:
+                print(f"Failed to reconnect to port {config.COM_PORT}: {e}")
+                self.port = None
+
     def __setPattern(self, img):
         # 32uint x 64
-
         for row in range(64):
             img_row = img[row]
             for B_col in range(6):
                 byte_i = B_col + row * 6
                 bit_pattern = (img_row & (np.uint32(2**6 - 1) << (B_col * 6))) >> (B_col * 6)
 
-                self.img_arr[byte_i] &= 3<<6
+                self.img_arr[byte_i] &= 3 << 6
                 self.img_arr[byte_i] |= bit_pattern
-                
+
     def __printImg(self):
         # ANSI escape codes for colors
         PURPLE = '\033[95m'  # Purple color
@@ -56,7 +68,6 @@ class SerialComm(serial.Serial):
             if n % 6 == 5:
                 print()
 
-
     def send_image(self):
         # Ensure there's an image to send
         if config.GRID_IMAGE is not None:
@@ -72,14 +83,21 @@ class SerialComm(serial.Serial):
                         row_bits |= (1 << (31 - col_index))  # Set the corresponding bit
                 # Store the resulting 32-bit integer in the array
                 uint32_img[row_index] = row_bits
-                
+
             self.__setPattern(uint32_img)
-            
-            self.__printImg()
+
+            #self.__printImg()
+
+            # Attempt to reconnect if the port is None
+            if self.port is None:
+                print("Serial port is not open. Attempting to reconnect...")
+                self.reconnect()
 
             # Send the bytearray over serial
             if self.is_open:
                 self.write(self.img_arr)
-            print("Image data sent over serial.")
+                """ print("\n\nImage data sent over serial.\n\n") """
+            else:
+                print("Failed to send image data. Serial port is not connected.")
         else:
             print("No image data to send.")
