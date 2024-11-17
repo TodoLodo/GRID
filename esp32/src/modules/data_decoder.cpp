@@ -1,5 +1,6 @@
 // data_decoder.cpp
 #include "data_decoder.h"
+#include <driver/timer.h>
 
 volatile uint32_t DataDecoder::data_array[ARRAY_SIZE] = {0};
 uint8_t DataDecoder::frame_ready = 0;
@@ -38,41 +39,54 @@ void _printBits32(uint32_t value)
 
 void DataDecoder::update(uint8_t rec_byte)
 {
-    static uint8_t col = 0, row = 0;
-    static u_int32_t last_row = 0;
+    static uint8_t col = 0, row = 0, payload = 0, fms_state = 0;
+    static uint64_t start = 0;
 
-    // Debugging before the update
-    Serial.print("Before update row ");
-    Serial.print(row);
-    Serial.print(": ");
-    Serial.println(DataDecoder::data_array[row], BIN);
-
-    switch (rec_byte >> 6)
+    if (rec_byte == 255)
     {
-    case 3:
-        row = 0;
-        col = 0;
-        /* Serial.println("\nnew frame"); */
-        break;
+        fms_state = 1;
+    }
+    else if (fms_state == 4 && rec_byte == ((row ^ col ^ payload) | 0x80) & 0xfe)
+    {
+        uint64_t mask = ((1U << 7) - 1); // 7-bit mask
+        uint8_t shift_by = (63 - 6) - col;
+        DataDecoder::data_array[row] &= ~((mask << shift_by) >> 32);
+        DataDecoder::data_array[row] |= ((rec_byte & mask) << shift_by) >> 32;
 
-    case 1:
-        row++;
-        col = 0;
-        break;
+        fms_state = 0;
+    }
+    else
+    {
+        switch (fms_state)
+        {
+        case 1:
+            row = rec_byte;
+            break;
 
-    default:
-        break;
+        case 2:
+            col = rec_byte;
+            if (row == 0 && col == 0)
+            {
+                start = (uint64_t)micros();
+            }
+            break;
+
+        case 3:
+            payload = rec_byte;
+            if (row == 63 && col == 28)
+            {
+                Serial.print("frame recieved : ");
+                Serial.print((uint64_t)micros() - start);
+                Serial.println("ms");
+            }
+            break;
+
+        default:
+            break;
+        }
+
+        fms_state++;
     }
 
-    uint32_t mask = ((1U << 6) - 1); // 6-bit mask
-    DataDecoder::data_array[row] &= ~(mask << col);
-    DataDecoder::data_array[row] |= (rec_byte & mask) << col;
-
     col += 6;
-
-    // Debugging after the update
-    Serial.print("After update row ");
-    Serial.print(row);
-    Serial.print(": ");
-    Serial.println(DataDecoder::data_array[row], BIN);
 }
