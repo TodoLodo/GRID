@@ -73,7 +73,7 @@ class SerialComm(serial.Serial):
             # Flatten the image array into a bytearray
             self.__setPattern(config.GRID_IMAGE)
             
-            #self.__printImg()
+            self.__printImg()
 
             # Attempt to reconnect if the port is None
             if self.port is None:
