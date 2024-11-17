@@ -15,7 +15,7 @@ def cameraThread(camera: Camera):
         start = time.time()
         camera.update()
         sleep(max(0, (1/(config.TARGET_FPS + 5)) - (time.time() - start)))
-        print(f"cam fps: {1/(time.time() - start)}")
+        #print(f"cam fps: {1/(time.time() - start)}")
         
         
 def commThread(comm: SerialComm):

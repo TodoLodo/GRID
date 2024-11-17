@@ -7,7 +7,7 @@
 void setup()
 {
 
-    Serial.begin(115200);
+    Serial.begin(2000000);
     // Initialize Wi-Fi
     /* WifiManager::init(); */
 
@@ -25,16 +25,6 @@ void loop()
     {
         DataDecoder::update(Serial.read());
     }
-
-    // Debugging: Print all rows in the shared data_array
-    /* Serial.println("Data array from main:");
-    for (size_t i = 0; i < ARRAY_SIZE; i++)
-    {
-        Serial.print("Row ");
-        Serial.print(i);
-        Serial.print(": ");
-        Serial.println(DataDecoder::data_array[i], BIN);
-    } */
 
     GpioController::update();
 

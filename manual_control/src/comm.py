@@ -2,24 +2,24 @@ import serial
 import config
 import numpy as np
 import cv2
+import os
 
 
 class SerialComm(serial.Serial):
-    def __init__(self, port=config.COM_PORT, baudrate=115200, timeout=1):
+    def __init__(self, port=config.COM_PORT, baudrate=2_000_000, timeout=1):
         # Initialize the serial port
-        self.img_arr = bytearray(384)
+        self.img_arr = np.zeros(1600, dtype=np.uint8)
 
         # Prepare the image array with patterns
         for i in range(64):
-            for j in range(6):
-                byte_i = j + i * 6
+            for j in range(0, 25, 5):
+                header_index = j + i * 25
+                row_index = header_index + 1
+                col_index = row_index + 1
 
-                if j == 0 and i == 0:
-                    self.img_arr[byte_i] |= (3 << 6)
-                elif j == 0:
-                    self.img_arr[byte_i] |= (1 << 6)
-                elif j == 5 and i == 63:
-                    self.img_arr[byte_i] |= (1 << 7)
+                self.img_arr[header_index] = 255
+                self.img_arr[row_index] = i
+                self.img_arr[col_index] = int(j/5) * 7
 
         try:
             super().__init__(port=port, baudrate=baudrate, timeout=timeout)
@@ -39,65 +39,55 @@ class SerialComm(serial.Serial):
                 self.port = None
 
     def __setPattern(self, img):
-        # 32uint x 64
+        # 32 x 64
         for row in range(64):
-            img_row = img[row]
-            for B_col in range(6):
-                byte_i = B_col + row * 6
-                bit_pattern = (img_row & (np.uint32(2**6 - 1) << (B_col * 6))) >> (B_col * 6)
-
-                self.img_arr[byte_i] &= 3 << 6
-                self.img_arr[byte_i] |= bit_pattern
-
+            for col in range(0, 32, 7):
+                payload_index = int(col/7) * 5 + 3 + row * 25
+                checksum_index = payload_index + 1
+                payload_arr = img[row, col:col+7]
+                for i, p in enumerate(payload_arr):
+                    if p:
+                        self.img_arr[payload_index] |= np.uint8(1<<(6 - i))
+                    else:
+                        self.img_arr[payload_index] &= ~np.uint8(1<<(6 - i))
+                        
+                    # checksum
+                    self.img_arr[checksum_index] = (np.bitwise_xor.reduce(self.img_arr[payload_index-2:payload_index+1]) | 128) & 254
+                    
     def __printImg(self):
         # ANSI escape codes for colors
         PURPLE = '\033[95m'  # Purple color
         WHITE = '\033[97m'   # White color
         RESET = '\033[0m'    # Reset to default color
 
-        print()
-        for n, byte in enumerate(self.img_arr):
-            # Extract the first two MSBs and the rest of the bits
-            msb_part = format((byte >> 6) & 0b11, '02b')  # First two MSBs
-            lsb_part = format(byte & 0b00111111, '06b')   # Remaining 6 bits
+        # os.system("cls")
 
-            # Print with color coding
-            print(f"{PURPLE}{msb_part}{RESET}{WHITE}{lsb_part}{RESET}", end=" ")
-
-            # Print a newline after every 6 bytes for formatting
-            if n % 6 == 5:
+        for n, b in enumerate(self.img_arr):
+            if n % 5 == 0:
                 print()
+            print(int(b), end=" ")
 
     def send_image(self):
         # Ensure there's an image to send
         if config.GRID_IMAGE is not None:
             # Flatten the image array into a bytearray
-            uint32_img = np.zeros(64, dtype=np.uint32)
+            self.__setPattern(config.GRID_IMAGE)
 
-            # Convert each row of 32 pixels into a uint32
-            for row_index in range(64):
-                row_bits = np.uint32(0)  # Start with an empty 32-bit integer
-                for col_index in range(32):
-                    # Set the bit if the pixel is white (255)
-                    if config.GRID_IMAGE[row_index, col_index] == 255:
-                        row_bits |= (1 << (31 - col_index))  # Set the corresponding bit
-                # Store the resulting 32-bit integer in the array
-                uint32_img[row_index] = row_bits
+            
 
-            self.__setPattern(uint32_img)
-
-            #self.__printImg()
+            self.__printImg()
 
             # Attempt to reconnect if the port is None
             if self.port is None:
-                print("Serial port is not open. Attempting to reconnect...")
-                self.reconnect()
+                # print("Serial port is not open. Attempting to reconnect...")
+                """ self.reconnect() """
 
             # Send the bytearray over serial
             if self.is_open:
                 self.write(self.img_arr)
                 """ print("\n\nImage data sent over serial.\n\n") """
             else:
-                print("Failed to send image data. Serial port is not connected.")
+                ...
+                # print("Failed to send image data. Serial port is not connected.")
         else:
             print("No image data to send.")
