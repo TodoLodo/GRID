@@ -83,6 +83,13 @@ void DataDecoder::update(uint8_t rec_byte)
         }
 
         fms_state = 0;
+
+        if (row == 63 && col == 28)
+        {
+            Serial.print("frame recieved : ");
+            Serial.print((uint64_t)micros() - start);
+            Serial.println("ms");
+        }
     }
     else
     {
