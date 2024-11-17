@@ -7,7 +7,7 @@
 void setup()
 {
 
-    Serial.begin(115200);
+    Serial.begin(2000000);
     // Initialize Wi-Fi
     /* WifiManager::init(); */
 
@@ -25,8 +25,8 @@ void loop()
     {
         DataDecoder::update(Serial.read());
     }
-    GpioController::update();
-    /* WebServer::update(); */
 
-    delay(10); // Small delay to prevent watchdog resets
+    GpioController::update();
+
+    /* WebServer::update(); */
 }

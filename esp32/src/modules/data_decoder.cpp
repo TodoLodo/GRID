@@ -1,34 +1,92 @@
 // data_decoder.cpp
 #include "data_decoder.h"
+#include <driver/timer.h>
 
-uint32_t DataDecoder::data_array[ARRAY_SIZE] = {0};
+volatile uint32_t DataDecoder::data_array[ARRAY_SIZE] = {0};
+uint8_t DataDecoder::frame_ready = 0;
 
 void DataDecoder::init()
 {
 }
 
+void printBits8(uint8_t value)
+{
+    for (int i = 7; i >= 0; i--)
+    {
+        // Extract the bit by shifting and masking
+        uint8_t bit = (value >> i) & 1;
+        Serial.print(bit);
+    }
+    Serial.print(" "); // New line after printing all bits
+}
+
+void _printBits32(uint32_t value)
+{
+    for (int i = 31; i >= 0; i--)
+    {
+        // Extract the bit by shifting and masking
+        uint32_t bit = (value >> i) & 1;
+        Serial.print(bit);
+
+        // Print a space every 8 bits for better readability
+        if (i % 8 == 0)
+        {
+            Serial.print(" ");
+        }
+    }
+    Serial.println(); // New line after printing all bits
+}
+
 void DataDecoder::update(uint8_t rec_byte)
 {
-    static uint8_t col = 0, row = 0;
+    static uint8_t col = 0, row = 0, payload = 0, fms_state = 0;
+    static uint64_t start = 0;
 
-    switch (rec_byte >> 6)
+    if (rec_byte == 255)
     {
-    case 3:
-        row = 0;
-        col = 0;
-        break;
-
-    case 1:
-        row++;
-        col = 0;
-        break;
-
-    default:
-        break;
+        fms_state = 1;
     }
+    else if (fms_state == 4 && rec_byte == ((row ^ col ^ payload) | 0x80) & 0xfe)
+    {
+        uint64_t mask = ((1U << 7) - 1); // 7-bit mask
+        uint8_t shift_by = (63 - 6) - col;
+        DataDecoder::data_array[row] &= ~((mask << shift_by) >> 32);
+        DataDecoder::data_array[row] |= ((rec_byte & mask) << shift_by) >> 32;
 
-    DataDecoder::data_array[row] &= ~((uint32_t)(2 ^ 6 - 1) << col);
-    DataDecoder::data_array[row] |= (uint32_t)(rec_byte & (2 ^ 6 - 1)) << col;
+        fms_state = 0;
+    }
+    else
+    {
+        switch (fms_state)
+        {
+        case 1:
+            row = rec_byte;
+            break;
+
+        case 2:
+            col = rec_byte;
+            if (row == 0 && col == 0)
+            {
+                start = (uint64_t)micros();
+            }
+            break;
+
+        case 3:
+            payload = rec_byte;
+            if (row == 63 && col == 28)
+            {
+                Serial.print("frame recieved : ");
+                Serial.print((uint64_t)micros() - start);
+                Serial.println("ms");
+            }
+            break;
+
+        default:
+            break;
+        }
+
+        fms_state++;
+    }
 
     col += 6;
 }
