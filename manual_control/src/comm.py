@@ -52,7 +52,7 @@ class SerialComm(serial.Serial):
                         self.img_arr[payload_index] &= ~np.uint8(1<<(6 - i))
                         
                     # checksum
-                    self.img_arr[checksum_index] = (np.bitwise_xor.reduce(self.img_arr[payload_index-2:payload_index+1]) | 128) & 254
+                    self.img_arr[checksum_index] = (np.bitwise_xor.reduce(self.img_arr[payload_index-2:payload_index+1]) | 0x80) & 0xfe
                     
     def __printImg(self):
         # ANSI escape codes for colors
@@ -72,10 +72,8 @@ class SerialComm(serial.Serial):
         if config.GRID_IMAGE is not None:
             # Flatten the image array into a bytearray
             self.__setPattern(config.GRID_IMAGE)
-
             
-
-            self.__printImg()
+            #self.__printImg()
 
             # Attempt to reconnect if the port is None
             if self.port is None:

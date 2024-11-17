@@ -22,6 +22,7 @@ def commThread(comm: SerialComm):
     while True:
         start = time.time()
         comm.send_image()
+        print(time.time() - start)
         sleep(max(0, (1/(config.TARGET_FPS + 5)) - (time.time() - start)))
         
 
