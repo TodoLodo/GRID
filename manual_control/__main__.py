@@ -50,6 +50,13 @@ def main():
         
         clock.tick(config.TARGET_FPS)
 
+        if comm.in_waiting > 0:  # Check if data is available
+            line = comm.readline().decode('utf-8', errors='replace').strip()  # Read and strip extra spaces/newlines
+            if line:
+                print(line)
+        
+        """ print(config.grid_image) """
+
     # Clean up resources
     camera.release()
     display.close()

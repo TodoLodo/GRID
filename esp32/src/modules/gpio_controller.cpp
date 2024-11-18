@@ -37,14 +37,14 @@ void printBits32(uint32_t value)
 void GpioController::update()
 {
     uint32_t cathode_pattern;
-    //printBits32(cathode_pattern);
-    // Apply bit shifting or any required operation to GPIO pins based on data_array
+    
+    //  Apply bit shifting or any required operation to GPIO pins based on data_array
     __SOB(DATA_PIN, CLOCK_PIN_ANODE, 1); // initial bit
     digitalWrite(LATCH_PIN, LOW);
     for (uint8_t i = 0; i < 64; i++)
     {
         cathode_pattern = (DataDecoder::data_array[i]);
-        //printBits32(cathode_pattern);
+        // printBits32(cathode_pattern);
 
         digitalWrite(OE_PIN, HIGH);
 
@@ -56,9 +56,13 @@ void GpioController::update()
         digitalWrite(LATCH_PIN, HIGH);
         digitalWrite(LATCH_PIN, LOW);
 
+        digitalWrite(OE_PIN, LOW);
+
         __SOB(DATA_PIN, CLOCK_PIN_ANODE, 0); // shifting down the rows
 
-        digitalWrite(OE_PIN, LOW);
-        delayMicroseconds(400);
+        esp_task_wdt_reset(); // Reset the watchdog timer to prevent task restart
+        /* Serial.println("Task running, watchdog reset."); */
+        esp_rom_delay_us(400);
+        taskYIELD();
     }
 }
