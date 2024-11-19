@@ -9,7 +9,7 @@ import threading
 class Camera:
     def __init__(self):
         # Initialize the camera
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(1)
 
         # Initialize background substractor
         self.backsub = cv2.createBackgroundSubtractorKNN(200, 100, False)
@@ -65,6 +65,14 @@ class Camera:
 
         # Save grid to global variable
         config.GRID_IMAGE = grid
+        
+        """ print("===================================")
+        for row in config.GRID_IMAGE:
+            for n, col in enumerate(row):
+                print(1 if col == 255 else 0, end="")
+                if n % 8 == 7:
+                    print(" ", end="")
+            print() """
     
     def __scaled_grid_image_update(self):
         if config.GRID_IMAGE is not None:

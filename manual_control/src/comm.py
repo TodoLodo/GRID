@@ -6,7 +6,7 @@ import os
 
 
 class SerialComm(serial.Serial):
-    def __init__(self, port=config.COM_PORT, baudrate=2_000_000, timeout=1):
+    def __init__(self, port=config.COM_PORT, baudrate=921600, timeout=1):
         # Initialize the serial port
         self.img_arr = np.zeros(1600, dtype=np.uint8)
 
@@ -73,7 +73,7 @@ class SerialComm(serial.Serial):
             # Flatten the image array into a bytearray
             self.__setPattern(config.GRID_IMAGE)
             
-            self.__printImg()
+            #self.__printImg()
 
             # Attempt to reconnect if the port is None
             if self.port is None:
@@ -82,7 +82,7 @@ class SerialComm(serial.Serial):
 
             # Send the bytearray over serial
             if self.is_open:
-                self.write(self.img_arr)
+                self.write(self.img_arr.tobytes())
                 """ print("\n\nImage data sent over serial.\n\n") """
             else:
                 ...
