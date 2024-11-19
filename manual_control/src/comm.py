@@ -82,7 +82,7 @@ class SerialComm(serial.Serial):
 
             # Send the bytearray over serial
             if self.is_open:
-                self.write(self.img_arr)
+                self.write(self.img_arr.tobytes())
                 """ print("\n\nImage data sent over serial.\n\n") """
             else:
                 ...

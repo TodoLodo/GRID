@@ -66,30 +66,28 @@ void DataDecoder::update(uint8_t rec_byte)
     {
         /* Serial.println(row);
         Serial.println(col);
-        Serial.println(payload);
-        Serial.println(((row ^ col ^ payload) | 0x80) & 0xfe);
-        Serial.println(rec_byte == uint8_t(((row ^ col ^ payload) | 0x80) & 0xfe)); */
+        Serial.println(payload); */
         if (rec_byte == uint8_t(((row ^ col ^ payload) | 0x80) & 0xfe))
         {
-            uint64_t mask = ((1U << 7) - 1); // 7-bit mask
+            uint8_t mask = ((1U << 7) - 1); // 7-bit mask
             uint8_t shift_by = (63 - 6) - col;
-            DataDecoder::data_array[row] &= ~((mask << shift_by) >> 32);
-            DataDecoder::data_array[row] |= ((rec_byte & mask) << shift_by) >> 32;
+            DataDecoder::data_array[row] &= ~(((uint64_t)mask << shift_by) >> 32);
+            DataDecoder::data_array[row] |= ((uint64_t)(payload & mask) << shift_by) >> 32;
 
             /* Serial.print("row[");
             Serial.print(row);
             Serial.print("]: ");
-            Serial.println(DataDecoder::data_array[row], BIN); */
+            printBits32(DataDecoder::data_array[row]); */
         }
 
         fms_state = 0;
 
-        if (row == 63 && col == 28)
+        /* if (row == 63 && col == 28)
         {
             Serial.print("frame recieved : ");
             Serial.print((uint64_t)micros() - start);
             Serial.println("ms");
-        }
+        } */
     }
     else
     {
@@ -109,12 +107,6 @@ void DataDecoder::update(uint8_t rec_byte)
 
         case 3:
             payload = rec_byte;
-            /* if (row == 63 && col == 28)
-            {
-                Serial.print("frame recieved : ");
-                Serial.print((uint64_t)micros() - start);
-                Serial.println("us");
-            } */
             break;
 
         default:

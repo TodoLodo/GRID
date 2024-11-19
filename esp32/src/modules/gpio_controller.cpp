@@ -17,27 +17,10 @@ void __SOB(uint8_t dataPin, uint8_t clockPin, uint8_t val)
     digitalWrite(clockPin, LOW);
 }
 
-void printBits32(uint32_t value)
-{
-    for (int i = 31; i >= 0; i--)
-    {
-        // Extract the bit by shifting and masking
-        uint32_t bit = (value >> i) & 1;
-        Serial.print(bit);
-
-        // Print a space every 8 bits for better readability
-        if (i % 8 == 0)
-        {
-            Serial.print(" ");
-        }
-    }
-    Serial.println(); // New line after printing all bits
-}
-
 void GpioController::update()
 {
     uint32_t cathode_pattern;
-    
+
     //  Apply bit shifting or any required operation to GPIO pins based on data_array
     __SOB(DATA_PIN, CLOCK_PIN_ANODE, 1); // initial bit
     digitalWrite(LATCH_PIN, LOW);
@@ -48,9 +31,9 @@ void GpioController::update()
 
         digitalWrite(OE_PIN, HIGH);
 
-        for (uint8_t i = 0; i < 4; i++)
+        for (uint8_t j = 0; j < 4; j++)
         {
-            shiftOut(DATA_PIN, CLOCK_PIN_CATHODE, LSBFIRST, (cathode_pattern >> (i * 8)));
+            shiftOut(DATA_PIN, CLOCK_PIN_CATHODE, LSBFIRST, (cathode_pattern >> (j * 8)));
         }
 
         digitalWrite(LATCH_PIN, HIGH);
@@ -61,8 +44,8 @@ void GpioController::update()
         __SOB(DATA_PIN, CLOCK_PIN_ANODE, 0); // shifting down the rows
 
         esp_task_wdt_reset(); // Reset the watchdog timer to prevent task restart
-        /* Serial.println("Task running, watchdog reset."); */
-        esp_rom_delay_us(400);
-        taskYIELD();
+
+        // Microsecond delay
+        delayMicroseconds(400);
     }
 }

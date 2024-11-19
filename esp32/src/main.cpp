@@ -11,8 +11,24 @@
 
 // Task Handle
 TaskHandle_t gpioTaskHandle = NULL;
+TaskHandle_t dataTaskHandle = NULL;
 
-esp_err_t hadle = ESP_ERR_INVALID_STATE;
+void printBits32(uint32_t value)
+{
+    for (int i = 31; i >= 0; i--)
+    {
+        // Extract the bit by shifting and masking
+        uint32_t bit = (value >> i) & 1;
+        Serial.print(bit);
+
+        // Print a space every 8 bits for better readability
+        if (i % 8 == 0)
+        {
+            Serial.print(" ");
+        }
+    }
+    Serial.println(); // New line after printing all bits
+}
 
 // GPIO Update Task Function
 void gpioUpdateTask(void *pvParameters)
@@ -20,14 +36,40 @@ void gpioUpdateTask(void *pvParameters)
     // This function will run in its own thread
     esp_task_wdt_init(10, false); // 30 seconds timeout
 
-    hadle = esp_task_wdt_add(gpioTaskHandle);
+    esp_task_wdt_add(NULL);
 
     while (true)
     {
-        GpioController::update(); // Call the GPIO update in its own thread
+        /* GpioController::update(); // Call the GPIO update in its own thread */
+        Serial.println("================================");
+        for (size_t i = 0; i < 64; i++)
+        {
+            Serial.print(i);
+            Serial.print(": ");
+            printBits32(DataDecoder::data_array[i]);
+            taskYIELD();
+            esp_task_wdt_reset();
+        }
 
         esp_task_wdt_reset();
-        /* Serial.println("Task running ex, watchdog reset."); */
+    }
+}
+
+void dataUpdateTask(void *pvParameters)
+{
+    // This function will run in its own thread
+    esp_task_wdt_init(10, false); // 30 seconds timeout
+
+    esp_task_wdt_add(NULL);
+
+    while (true)
+    {
+        if (Serial.available())
+        {
+            DataDecoder::update(Serial.read());
+        }
+
+        esp_task_wdt_reset();
     }
 }
 
@@ -46,13 +88,25 @@ void setup()
     GpioController::init();
 
     // Create the GPIO update task (this runs in its own thread)
-    xTaskCreate(
+    xTaskCreatePinnedToCore(
         gpioUpdateTask,     // Function to implement the task
         "GPIO Update Task", // Name of the task
-        2048,               // Stack size (increase if necessary)
-        NULL,               // Parameters to pass to the task
-        2,                  // Priority (1 is low priority)
-        &gpioTaskHandle     // Task handle to keep track of the task
+        2048,               // Stack size
+        NULL,               // Parameters
+        1,                  // Priority
+        &gpioTaskHandle,    // Task handle
+        1                   // Pin to Core 1
+    );
+
+    // Create the data dec update task (this runs in its own thread)
+    xTaskCreatePinnedToCore(
+        dataUpdateTask,     // Function to implement the task
+        "DATA Update Task", // Name of the task
+        4096,               // Stack size
+        NULL,               // Parameters
+        1,                  // Priority
+        &dataTaskHandle,    // Task handle
+        0                   // Pin to Core 1
     );
 
     // Initialize Web Server (optional, commented out)
@@ -62,10 +116,6 @@ void setup()
 void loop()
 {
     // Check for serial data and update the DataDecoder
-    if (Serial.available())
-    {
-        DataDecoder::update(Serial.read());
-    }
 
     // The GPIO task is now running in the background, so nothing else is needed here
     // You can put other tasks here (like WebServer::update(), if enabled)
