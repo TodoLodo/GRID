@@ -25,6 +25,13 @@ def commThread(comm: SerialComm):
         #print(time.time() - start)
         sleep(max(0, (1/(config.TARGET_FPS + 5)) - (time.time() - start)))
         
+def serT(comm):
+    while True:
+        if comm.in_waiting > 0:  # Check if data is available
+            line = comm.readline().decode('utf-8', errors='replace').strip()  # Read and strip extra spaces/newlines
+            if line:
+                print(line)
+        
 
 def main():
     # Initialize camera and display
@@ -34,6 +41,7 @@ def main():
     
     threading.Thread(target=cameraThread, name="Camera Thread", args=[camera], daemon=True).start()
     threading.Thread(target=commThread, name="Comm Thread", args=[comm], daemon=True).start()
+    threading.Thread(target=serT, name="SER Thread", args=[comm], daemon=True).start()
 
     # Main application loop
     running = True
@@ -49,6 +57,8 @@ def main():
         #print(clock.get_fps())
         
         clock.tick(config.TARGET_FPS)
+        
+        """ print(config.grid_image) """
 
     # Clean up resources
     camera.release()

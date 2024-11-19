@@ -23,4 +23,7 @@
 // Array size
 #define ARRAY_SIZE 64
 
+// 
+#define TARGET_FPS 30
+
 #endif // CONFIG_H

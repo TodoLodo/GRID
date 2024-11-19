@@ -7,6 +7,17 @@ uint8_t DataDecoder::frame_ready = 0;
 
 void DataDecoder::init()
 {
+    /* for (int i = 0; i < ARRAY_SIZE; i++)
+    {
+        if (i % 2 == 0)
+        {
+            DataDecoder::data_array[i] = 0xFFFFFFFF; // Set even-indexed rows to 1s
+        }
+        else
+        {
+            DataDecoder::data_array[i] = 0x00000000; // Set odd-indexed rows to 0s
+        }
+    } */
 }
 
 void printBits8(uint8_t value)
@@ -42,18 +53,41 @@ void DataDecoder::update(uint8_t rec_byte)
     static uint8_t col = 0, row = 0, payload = 0, fms_state = 0;
     static uint64_t start = 0;
 
+    /* Serial.print("Recieved : ");
+    Serial.print(rec_byte);
+    Serial.print(", fms: ");
+    Serial.println(fms_state); */
+
     if (rec_byte == 255)
     {
         fms_state = 1;
     }
-    else if (fms_state == 4 && rec_byte == ((row ^ col ^ payload) | 0x80) & 0xfe)
+    else if (fms_state == 4)
     {
-        uint64_t mask = ((1U << 7) - 1); // 7-bit mask
-        uint8_t shift_by = (63 - 6) - col;
-        DataDecoder::data_array[row] &= ~((mask << shift_by) >> 32);
-        DataDecoder::data_array[row] |= ((rec_byte & mask) << shift_by) >> 32;
+        /* Serial.println(row);
+        Serial.println(col);
+        Serial.println(payload); */
+        if (rec_byte == uint8_t(((row ^ col ^ payload) | 0x80) & 0xfe))
+        {
+            uint8_t mask = ((1U << 7) - 1); // 7-bit mask
+            uint8_t shift_by = (63 - 6) - col;
+            DataDecoder::data_array[row] &= ~(((uint64_t)mask << shift_by) >> 32);
+            DataDecoder::data_array[row] |= ((uint64_t)(payload & mask) << shift_by) >> 32;
+
+            /* Serial.print("row[");
+            Serial.print(row);
+            Serial.print("]: ");
+            printBits32(DataDecoder::data_array[row]); */
+        }
 
         fms_state = 0;
+
+        /* if (row == 63 && col == 28)
+        {
+            Serial.print("frame recieved : ");
+            Serial.print((uint64_t)micros() - start);
+            Serial.println("ms");
+        } */
     }
     else
     {
@@ -65,20 +99,14 @@ void DataDecoder::update(uint8_t rec_byte)
 
         case 2:
             col = rec_byte;
-            if (row == 0 && col == 0)
+            /* if (row == 0 && col == 0)
             {
                 start = (uint64_t)micros();
-            }
+            } */
             break;
 
         case 3:
             payload = rec_byte;
-            if (row == 63 && col == 28)
-            {
-                Serial.print("frame recieved : ");
-                Serial.print((uint64_t)micros() - start);
-                Serial.println("ms");
-            }
             break;
 
         default:
@@ -87,6 +115,4 @@ void DataDecoder::update(uint8_t rec_byte)
 
         fms_state++;
     }
-
-    col += 6;
 }
