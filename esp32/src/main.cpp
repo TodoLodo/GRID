@@ -40,8 +40,8 @@ void gpioUpdateTask(void *pvParameters)
 
     while (true)
     {
-        /* GpioController::update(); // Call the GPIO update in its own thread */
-        Serial.println("================================");
+        GpioController::update(); // Call the GPIO update in its own thread */
+        /* Serial.println("================================");
         for (size_t i = 0; i < 64; i++)
         {
             Serial.print(i);
@@ -49,7 +49,7 @@ void gpioUpdateTask(void *pvParameters)
             printBits32(DataDecoder::data_array[i]);
             taskYIELD();
             esp_task_wdt_reset();
-        }
+        } */
 
         esp_task_wdt_reset();
     }
@@ -81,7 +81,7 @@ void setup()
     delay(100);
 
     // Initialize Wi-Fi (optional, commented out)
-    // WifiManager::init();
+    //WifiManager::init();
 
     // Initialize modules
     DataDecoder::init();
@@ -106,7 +106,7 @@ void setup()
         NULL,               // Parameters
         1,                  // Priority
         &dataTaskHandle,    // Task handle
-        0                   // Pin to Core 1
+        1                   // Pin to Core 1
     );
 
     // Initialize Web Server (optional, commented out)
@@ -116,6 +116,7 @@ void setup()
 void loop()
 {
     // Check for serial data and update the DataDecoder
+    //WifiManager::update();
 
     // The GPIO task is now running in the background, so nothing else is needed here
     // You can put other tasks here (like WebServer::update(), if enabled)

@@ -7,6 +7,11 @@
 
 class WifiManager {
 public:
+    static IPAddress STA_IP;
+    static IPAddress AP_IP;
+    static IPAddress GATEWAY;
+    static IPAddress SUBNET;
+
     static void init();
     static void update();
 };
