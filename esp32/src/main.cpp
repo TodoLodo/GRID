@@ -19,13 +19,13 @@ void printBits32(uint32_t value)
     {
         // Extract the bit by shifting and masking
         uint32_t bit = (value >> i) & 1;
-        Serial.print(bit);
+        Serial.print(bit ? "█": " ");
 
         // Print a space every 8 bits for better readability
-        if (i % 8 == 0)
+        /* if (i % 8 == 0)
         {
             Serial.print(" ");
-        }
+        } */
     }
     Serial.println(); // New line after printing all bits
 }
@@ -41,15 +41,14 @@ void gpioUpdateTask(void *pvParameters)
     while (true)
     {
         GpioController::update(); // Call the GPIO update in its own thread */
-        /* Serial.println("================================");
+        Serial.println("================================");
         for (size_t i = 0; i < 64; i++)
         {
-            Serial.print(i);
-            Serial.print(": ");
+            Serial.printf("%02u: ",i);
             printBits32(DataDecoder::data_array[i]);
             taskYIELD();
             esp_task_wdt_reset();
-        } */
+        }
 
         esp_task_wdt_reset();
     }

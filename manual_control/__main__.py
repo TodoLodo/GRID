@@ -8,6 +8,7 @@ from src.comm import SerialComm
 from time import sleep
 import time
 import threading
+import os
 
 
 def cameraThread(camera: Camera):
@@ -30,7 +31,10 @@ def serT(comm):
         if comm.in_waiting > 0:  # Check if data is available
             line = comm.readline().decode('utf-8', errors='replace').strip()  # Read and strip extra spaces/newlines
             if line:
-                print(line)
+                if "=" in line:
+                    os.system("cls")
+                else:
+                    print(line)
         
 
 def main():
