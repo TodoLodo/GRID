@@ -31,10 +31,7 @@ def serT(comm):
         if comm.in_waiting > 0:  # Check if data is available
             line = comm.readline().decode('utf-8', errors='replace').strip()  # Read and strip extra spaces/newlines
             if line:
-                if "=" in line:
-                    os.system("cls")
-                else:
-                    print(line)
+                print(line)
         
 
 def main():

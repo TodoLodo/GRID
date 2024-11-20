@@ -20,13 +20,15 @@ void __SOB(uint8_t dataPin, uint8_t clockPin, uint8_t val)
 void GpioController::update()
 {
     uint32_t cathode_pattern;
+    uint32_t start, now;
 
     //  Apply bit shifting or any required operation to GPIO pins based on data_array
     __SOB(DATA_PIN, CLOCK_PIN_ANODE, 1); // initial bit
     digitalWrite(LATCH_PIN, LOW);
     for (uint8_t i = 0; i < 64; i++)
     {
-        cathode_pattern = (DataDecoder::data_array[i]);
+        start = micros();
+        cathode_pattern = ~(DataDecoder::data_array[i]);
         // printBits32(cathode_pattern);
 
         digitalWrite(OE_PIN, HIGH);
@@ -45,7 +47,11 @@ void GpioController::update()
 
         esp_task_wdt_reset(); // Reset the watchdog timer to prevent task restart
 
+        vTaskDelay(pdMS_TO_TICKS(1));
+        //delayMicroseconds(400);
+
         // Microsecond delay
-        delayMicroseconds(400);
+        //delayMicroseconds(std::max(0, 400 - (int)(micros() - start)));
+        // Serial.println(std::max(0, 400 - (int)(micros() - start)));
     }
 }

@@ -6,12 +6,22 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/queue.h"
+#include "driver/gpio.h"
+#include "soc/gpio_struct.h"
+#include "esp_intr_alloc.h"
 
 #include "esp_task_wdt.h"
+
+#include <queue>
+
+#define RX_PIN 3 // GPIO Pin 3 for Serial RX
 
 // Task Handle
 TaskHandle_t gpioTaskHandle = NULL;
 TaskHandle_t dataTaskHandle = NULL;
+
+std::queue<uint8_t> uartQueue; // Declare a queue to hold the UART data
 
 void printBits32(uint32_t value)
 {
@@ -19,7 +29,7 @@ void printBits32(uint32_t value)
     {
         // Extract the bit by shifting and masking
         uint32_t bit = (value >> i) & 1;
-        Serial.print(bit ? "█": " ");
+        Serial.print(bit ? "█" : " ");
 
         // Print a space every 8 bits for better readability
         /* if (i % 8 == 0)
@@ -40,16 +50,7 @@ void gpioUpdateTask(void *pvParameters)
 
     while (true)
     {
-        GpioController::update(); // Call the GPIO update in its own thread */
-        Serial.println("================================");
-        for (size_t i = 0; i < 64; i++)
-        {
-            Serial.printf("%02u: ",i);
-            printBits32(DataDecoder::data_array[i]);
-            taskYIELD();
-            esp_task_wdt_reset();
-        }
-
+        GpioController::update();
         esp_task_wdt_reset();
     }
 }
@@ -63,9 +64,11 @@ void dataUpdateTask(void *pvParameters)
 
     while (true)
     {
-        if (Serial.available())
+        uint8_t data;
+        if (!uartQueue.empty())
         {
-            DataDecoder::update(Serial.read());
+            DataDecoder::update(uartQueue.front());
+            uartQueue.pop(); // Remove the item from the queue
         }
 
         esp_task_wdt_reset();
@@ -80,7 +83,7 @@ void setup()
     delay(100);
 
     // Initialize Wi-Fi (optional, commented out)
-    //WifiManager::init();
+    // WifiManager::init();
 
     // Initialize modules
     DataDecoder::init();
@@ -105,7 +108,7 @@ void setup()
         NULL,               // Parameters
         1,                  // Priority
         &dataTaskHandle,    // Task handle
-        1                   // Pin to Core 1
+        0                   // Pin to Core 1
     );
 
     // Initialize Web Server (optional, commented out)
@@ -115,9 +118,15 @@ void setup()
 void loop()
 {
     // Check for serial data and update the DataDecoder
-    //WifiManager::update();
-
+    // WifiManager::update();
     // The GPIO task is now running in the background, so nothing else is needed here
+    if (Serial.available())
+    {
+        uint8_t receivedByte = Serial.read(); // Read byte from serial
+        // Enqueue the received byte into the queue
+        uartQueue.push(receivedByte);
+    }
+
     // You can put other tasks here (like WebServer::update(), if enabled)
     // WebServer::update();  // Uncomment if using the web server
 }

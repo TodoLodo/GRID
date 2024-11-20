@@ -86,6 +86,7 @@ class Camera:
         
     def update(self):
         # Capture frame from the camera
+        #frame =cv2.imread(r"C:\Users\MSI\Pictures\Screenshot_20240120-150739_Sketchbook.jpg")
         ret, frame = self.cap.read()
         if not ret:
             print("No frame")

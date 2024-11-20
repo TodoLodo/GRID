@@ -51,12 +51,14 @@ void _printBits32(uint32_t value)
 void DataDecoder::update(uint8_t rec_byte)
 {
     static uint8_t col = 0, row = 0, payload = 0, fms_state = 0;
-    static uint64_t start = 0;
+    static uint32_t start = 0;
 
     /* Serial.print("Recieved : ");
     Serial.print(rec_byte);
     Serial.print(", fms: ");
     Serial.println(fms_state); */
+    Serial.printf("byte rate: %luus\n", micros() - start);
+    start = micros();
 
     if (rec_byte == 255)
     {
@@ -115,4 +117,6 @@ void DataDecoder::update(uint8_t rec_byte)
 
         fms_state++;
     }
+
+    delayMicroseconds(10);
 }
