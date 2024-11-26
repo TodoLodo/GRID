@@ -118,5 +118,5 @@ void DataDecoder::update(uint8_t rec_byte)
         fms_state++;
     }
 
-    delayMicroseconds(10);
+    esp_rom_delay_us(10);
 }

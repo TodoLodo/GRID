@@ -78,6 +78,8 @@ void dataUpdateTask(void *pvParameters)
 void setup()
 {
     // Start serial communication
+    setCpuFrequencyMhz(240);
+    
     Serial.begin(921600);
 
     delay(100);
